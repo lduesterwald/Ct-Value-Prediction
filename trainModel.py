@@ -19,12 +19,10 @@ from sklearn.metrics import mean_squared_error
 # returns: output_dir, df_name, dictionary_name, model_name, output_file_name, num_features, test_size, nt, td, rs
 def parseParams(args):
     # setting default values for parameters:
-    output_dir = "./output" # (-o) the directory where dataFrame and dictionary are stored and where the model will be stored
+    output_dir = "./output" # (-o) the directory where dataFrame is stored and where the model will be stored
     df_name = "kmr_df.csv" # (-d) the name that of the k-mer dataFrame (in output_dir)
-    dictionary_name = "kmr_dictionary.pkl" # (-i) the name of the stored dictionary (k-mer : column number) (in output_dir)
     model_name = "ct_model.sav" # (-m) the name to store the Ct value prediction model as (in output_dir)
     output_file_name = "output_file_trainModel" # (-f) the name of the file to which to write the results
-    num_features = 20 # (-t) the number of top features to print to the output file
     test_size = 0.2 # (-ts) the test size for the train test split of the data
     # parameters for the model, default values are the optimal ones found during prameter tuning
     num_trees = 400 # (-nt) number of trees
@@ -45,14 +43,10 @@ def parseParams(args):
                 output_dir = output_dir + "/"
         elif (args[i] == "-d" or args[i] == "--df_name"):
             df_name = args[i + 1]
-        elif (args[i] == "-i" or args[i] == "--dictionary_name"):
-            dictionary_name = args[i + 1]
         elif (args[i] == "-m" or args[i] == "--model_name"):
             model_name = args[i + 1]
         elif (args[i] == "-f" or args[i] == "--output_file_name"):
             output_file_name = args[i + 1]
-        elif( args[i] == "-t" or args[i] == "--num_features"):
-            num_features = int(args[i + 1])
         elif( args[i] == "-ts" or args[i] == "--test_size"):
             test_size = args[i + 1]
         elif( args[i] == "-nt" or args[i] == "--num_trees"):
@@ -62,22 +56,21 @@ def parseParams(args):
         elif( args[i] == "-rs" or args[i] == "--row_subsampling"):
             rs = args[i + 1]
 
-    return output_dir, df_name, dictionary_name, model_name, output_file_name, num_features, test_size, num_trees, tree_depth, row_subsampling
+    return output_dir, df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling
+
 
 
 
 # returns a string of all the options for the script if the script was called with -h or --help
 def helpOption():
-    s = "-o --output_dir:\tthe directory where dataFrame and dictionary are stored and where the model will be stored. The default is './output/'"
+    s = "-o --output_dir:\tthe directory where dataFrame is stored and where the model will be stored. The default is './output/'"
     s+= "\n-d --df_name:\tthe name of the k-mer DataFrame to train the model on (must be a .csv file). The default is 'kmr_df.csv'"
-    s+= "\n-i --dictionary_name:\tthe name of the dictionary { k-mer : column number } used to create the DataFrame (must be a .pkl file). The default is 'kmr_dictionary.pkl'"
     s+= "\n-m --model_name:\tthe name to store the Ct value prediction model created by the script as (must be a .sav file). The default is 'ct_model.sav'"
     s+= "\n-f --output_file_name:\tthe name of the output file for this script. This file will be created in the <output_dir> directory. The default is 'output_file_trainModel'"
-    s+= "\n-t --num_features:\tthe number of top features of the model to write to the output file. The default is 20"
     s+= "\n-ts --test_size:\tthe size of the test set to be used in the train_test_split during model training and evaluation. The default is 0.2"
-    s+="\n-nt --num_trees:\tthe 'n_estimators' (number of trees) parameter in the Random Forest regressor. The default is 200"
-    s+="\n-td --tree_depth:\tthe 'max_depth' (tree depth) parameter in the Random Forest regressor. The default is 32"
-    s+="\n-rs --row_subsampling:\tthe 'max_samples' parameter in the Random Forest regressor. the default is 0.5"
+    s+="\n-nt --num_trees:\tthe 'n_estimators' (number of trees) parameter in the Random Forest regressor. The default is 400"
+    s+="\n-td --tree_depth:\tthe 'max_depth' (tree depth) parameter in the Random Forest regressor. The default is None"
+    s+="\n-rs --row_subsampling:\tthe 'max_samples' parameter in the Random Forest regressor. the default is 0.25"
     return s
 
 
@@ -180,46 +173,6 @@ def getAccuracyWithinIntervals(predictions, true_values, output_file_path):
     f.close()
 
 
-
-# writes the top features of the model to the output file
-# parameters:
-#    model: the model whose features to write to the file
-#    kmr_dictionary: the dictionary with the column numbers and the k-mers they correspond to
-#    output_file_path: the path to the output file to which to write the top k-mers
-#    n: the number of top features to write
-def getFeatureImportance(model, kmr_dictionary, output_file_path, n):
-    importances = model.feature_importances_
-
-    #generates a dictionary of column number : importance
-    importance_dict = {}
-    for i,v in enumerate(importances):
-        importance_dict.update({i: v})
-
-    # updating the dictionary of k-mer columns with the instrument columns
-    last_val = len(kmr_dictionary) - 1
-    kmr_dictionary.update({"alinity":(last_val + 1)})
-    kmr_dictionary.update({"panther":(last_val + 2)})
-    kmr_dictionary.update({"cepheid":(last_val + 3)})
-
-    # sorts the indices of top k-mers by importance
-    sorted_indices = np.argsort(importances)[::-1]
-
-    key_list = list(kmr_dictionary.keys()) # the keys are column numbers
-    val_list = list(kmr_dictionary.values()) # the values are k-mers
-
-    f = open(output_file_path, "a")
-    f.write("\n\nCt value prediction top k-mers: \nimportance: \t\t k-mer: \n")
-
-    i = 0
-    while (i < n):
-        # finds the position in the dictionary of the current column number:
-        pos = val_list.index(sorted_indices[i])
-        f.write(str(importance_dict[sorted_indices[i]]) + "\t" +  str(key_list[pos]) + "\n")
-        i = i + 1
-    f.close()
-
-
-
 # main function
 # trains a model on the k-mer dataFrame created by createDataFrame.py
 # evaluates the model's accuracy (r2 score, RMSE, accuracy within intervals)
@@ -227,7 +180,7 @@ def getFeatureImportance(model, kmr_dictionary, output_file_path, n):
 def main(argv):
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    output_dir, df_name, dictionary_name, model_name, output_file_name, num_features, test_size, num_trees, tree_depth, row_subsampling = parseParams(args)
+    output_dir, df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling = parseParams(args)
 
 
     # opening the DataFrame
@@ -251,11 +204,6 @@ def main(argv):
     # evaluating the model's accuracy and writing the results to a file
     evaluateModel(model, test_set, test_labels, (output_dir + output_file_name))
 
-    # writing the top features of the model to the output file:
-    os.chdir(output_dir)
-    kmr_dictionary = pickle.load(open(dictionary_name, "rb")) #opening the dictionary of k-mer : column number
-    getFeatureImportance(model, kmr_dictionary, (output_dir + output_file_name), num_features)
-    print("--trainModel.py-- got feature importance")
 
     # storing the model to the output_dir
     os.chdir(output_dir)
@@ -266,3 +214,4 @@ def main(argv):
 # if this is the script called by python, run main function
 if __name__ == '__main__':
 	main(sys.argv)
+

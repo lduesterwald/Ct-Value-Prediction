@@ -2,7 +2,7 @@
 # runs the Ct value prediction script pipeline
 
 # sets the arguments to the appropriate variables
-while getopts g:k:s:c:o:d:i:m:f:t:e:r:p:u:n: flag
+while getopts g:k:s:c:o:d:i:m:f:e:r:p:u:n: flag
 do
     case "${flag}" in
         g) genomes_dir=${OPTARG};;
@@ -14,7 +14,6 @@ do
         i) dictionary_name=${OPTARG};;
         m) model_name=${OPTARG};;
         f) output_file_name=${OPTARG};;
-        t) num_features=${OPTARG};;
         e) test_size=${OPTARG};;
         r) num_trees=${OPTARG};;
         p) tree_depth=${OPTARG};;
@@ -30,9 +29,9 @@ then
     space="                              "
     echo usage: "$0 [-g genomes_dir] [-k kmc_out_dir] [-s kmr_size]"
     echo "$space[-c csv_path - required] [-o output_dir] [-d df_name]"
-    echo "$space[-i dictionary_name] [-m model_name] [-f output_file_name] "
-    echo "$space[-t num_features] [-e test_size] [-r num_trees]"
-    echo "$space[-p tree_depth] [-u row_subsampling] [-n genome_name - required]"
+    echo "$space[-i dictionary_name] [-m model_name] [-f output_file_name]"
+    echo "$space[-e test_size] [-r num_trees] [-p tree_depth]"
+    echo "$space[-u row_subsampling] [-n genome_name - required]"
     echo " "
     echo "one or more required arguments missing: "
     echo "    -c: csv_path"
@@ -75,3 +74,4 @@ echo "$c4"
 $c4
 
 echo "stored all output as $output_file_name in $output_dir"
+
