@@ -5,6 +5,9 @@ This repository contains scripts to train and score a Random Forest regression m
 * *trainModel.py* - training and evaluating a model to predict the Ct values from the k-mer matrix
 * *predictCt.py* - using the model to predict the Ct value of an individual genome.
 
+This repo also includes the *sample* directory containing the data and model files for testing and running the scripts including instructions on how to download relevant data.
+
+
 ## Requirements
 In order to run the scripts:
 1. KMC must be installed and the kmc.sh script must be downloaded
@@ -67,10 +70,12 @@ The script takes in the following options:
 * -o --output_dir: Specify the directory for storing the k-mer DataFrame created by the script. If the output directory does not exist, it will be created by the script. The default is “~/<genomes_dir>/output/”. 
 * -d --df_name: Specify the name that the k-mer DataFrame created by the script will be stored as. This must be a *.csv* file. The default is "kmr_df.csv".
 * -i --dictionary_name: Specify the name that the dictionary of { k-mer : column number } used to create the DataFrame will be stored as. This must be a *.pkl* file. The default is "kmr_dictionary.pkl". 
+An example dictionary used in the createDataFrame.py script is included in the sample folder.
 
 
 ### *trainModel.py*
-The *trainModel.py* script trains and stores a Random Forest regression model using the DataFrame created by *createDataFrame.py* to predict the Ct value. The script then evaluates the model’s accuracy and calculates the R2 score, RMSE (root mean squared error), and the model’s accuracy within certain intervals and writes the results to an output file. The script also generates a list of the top features of the model and the k-mers they correspond to and writes these to the output file.
+The *trainModel.py* script trains and stores a Random Forest regression model using the DataFrame created by *createDataFrame.py* to predict the Ct value. The script then evaluates the model’s accuracy and calculates the R2 score, RMSE (root mean squared error), and the model’s accuracy within certain intervals and writes the results to an output file. 
+An example model trained by this script is included in the sample folder. 
 
 An example run would be:
 ~~~
@@ -78,12 +83,10 @@ python3 trainModel.py -o ~/<genome_directory>/output -m ct_prediction_model.sav
 ~~~
 
 The script takes in the following options:
-* -o --output_dir: Specify the directory containing the k-mer DataFrame and dictionary {k-mer : column number} that will be used for storing the model trained in this script. This must be the same as in *createDataFrame.py*. The default is “./output”.
+* -o --output_dir: Specify the directory containing the k-mer DataFrame that will be used for storing the model trained in this script. This must be the same as in *createDataFrame.py*. The default is “./output”.
 * -d --df_name: Specify the name that the DataFrame created by *createDataFrame.py* was stored as. Must be a *.csv* file. The default is "kmr_df.csv".
-* -i --dictionary_name: Specify the name of the dictionary {k-mer : column number} used to create the DataFrame in *createDataFrame.py*. Must be a .pkl file. The default is "kmr_dictionary.pkl".
 * -m --model_name: Specify the name that the Ct value prediction model will be stored as. This must be a .sav file. The default is "ct_model.sav".
 * -f --output_file_name: Specify the name of the output file for this script. This file will be created in the <output_dir> directory. The default is "output_file_trainModel".
-* -t --num_features: Specify the number of top features of the model to write to the output file. The default is 20. 
 * -ts --test_size: Specify the size of the test set to be used in the train_test_split during model training and evaluation. The default is 0.2.
 * -nt --num_trees: Specify the ‘n_estimators’ (number of trees) parameter in the Random Forest regression model. The default was established through hyperparameter tuning and is 400.
 * -td --tree_depth: Specify the ‘max_depth’ (tree depth) parameter in the Random Forest regression model. The default was established through hyperparameter tuning and is None.
@@ -102,30 +105,6 @@ within 4: 0.580952380952381
 within 3: 0.5047619047619047
 within 2: 0.38095238095238093
 within 1: 0.23853211009174313
-
-
-Ct value prediction top k-mers: 
-Importance:       k-mer:
-0.08742498733	  ATGTCTAACA
-0.04355919375	  CAACCTAGGA
-0.03967213098	  ATATAATGAA
-0.03832850766	  CTTCAACCTA
-0.03392935041	  ATGAAAATGG
-0.03363647922	  AATGAAAATG
-0.03165775512	  AATATAATGA
-0.02808595337	  AAAATGGAAC
-0.02768671284	  CTAGGTTGAA
-0.02158689433	  TAAAATATAA
-0.01848198619	  AAAATATAAT
-0.01567071198	  AAATATAATG
-0.01138721601	  ACCATTCCAG
-0.01114665432	  ATTAAATGGA
-0.01028157925	  TTAAATGGAA
-0.00983877056	  TCCATTTTCA
-0.00886550527	  GTAATTATAA
-0.00785071927	  TATATTTTAA
-0.00749084180	  ACTCTAAAGT
-0.00713371128	  ACACCTAATA
 ~~~
 
 
