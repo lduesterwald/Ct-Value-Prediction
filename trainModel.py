@@ -19,7 +19,7 @@ from sklearn.metrics import mean_squared_error
 # returns: output_dir, df_name, dictionary_name, model_name, output_file_name, num_features, test_size, nt, td, rs
 def parseParams(args):
     # setting default values for parameters:
-    output_dir = "./output" # (-o) the directory where dataFrame is stored and where the model will be stored
+    output_dir = "./output/" # (-o) the directory where dataFrame is stored and where the model will be stored
     df_name = "kmr_df.csv" # (-d) the name that of the k-mer dataFrame (in output_dir)
     model_name = "ct_model.sav" # (-m) the name to store the Ct value prediction model as (in output_dir)
     output_file_name = "output_file_trainModel" # (-f) the name of the file to which to write the results
@@ -39,8 +39,7 @@ def parseParams(args):
             break
         elif (args[i] == "-o" or args[i] == "--output_dir"):
             output_dir = args[i + 1]
-            if (output_dir.endswith("/") == False):
-                output_dir = output_dir + "/"
+            output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-d" or args[i] == "--df_name"):
             df_name = args[i + 1]
         elif (args[i] == "-m" or args[i] == "--model_name"):

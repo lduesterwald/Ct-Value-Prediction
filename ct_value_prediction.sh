@@ -47,7 +47,7 @@ c3="python3 trainModel.py"
 c4="python3 predictCt.py"
 
 if ! [ -z "$genomes_dir" ]; then c1+=" -g $genomes_dir"; c2+=" -g $genomes_dir"; c4+=" -g $genomes_dir"; fi
-if ! [ -z "$kmc_out_dir" ]; then c1+=" -k $kmc_out_dir"; c2+=" -k $kmc_out_dir"; fi
+if ! [ -z "$kmc_out_dir" ]; then c1+=" -k $kmc_out_dir"; c2+=" -k $kmc_out_dir"; c4+=" -k $kmc_out_dir"]; fi
 if ! [ -z "$kmr_size" ]; then c1+=" -s $kmr_size"; c4+=" -s $kmr_size"; fi
 c2+=" -c $csv_path"; c4+=" -c $csv_path"
 if ! [ -z "$output_dir" ]; then c2+=" -o $output_dir"; c3+=" -o $output_dir"; c4+=" -o $output_dir"; fi

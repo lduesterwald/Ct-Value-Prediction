@@ -11,6 +11,7 @@ import pickle
 def parseParams(args):
     # setting default values for parameters:
     genomes_dir = "./" # (-g) the directory containing the genome to predict the Ct value for
+    kmc_out_dir = genomes_dir + "kmc_output/" # (-k) the directory in which the output files of KMC are stored
     kmr_size = 10 # (-s) the size of the k-mer to run KMC with. Must be identical to the size used to construct the model
     output_dir = genomes_dir = "output" # (-o) the directory where DataFrame, dictionary, and model are stored
     dictionary_name = "kmr_dictionary.pkl" # (-i) the name of the stored dictionary (k-mer : column number) (in output_dir)
@@ -29,16 +30,17 @@ def parseParams(args):
             break
         elif (args[i] == "-g" or args[i] == "--genomes_dir"):
             genomes_dir = args[i + 1]
-            if (genomes_dir.endswith("/") == False):
-                genomes_dir = genomes_dir + "/"
+            genomes_dir = os.path.abspath(genomes_dir) + "/"
+        elif (args[i] == "-k" or args[i] == "--kmc_out_dir"):
+            kmc_out_dir = args[i + 1]
+            kmc_out_dir = os.path.abspath(kmc_out_dir) + "/"
         elif (args[i] == "-s" or args[i] == "--kmr_size"):
             kmr_size = args[i + 1]
         elif(args[i] == "-c"or args[i] == "--csv_path"):
             csv_path = args[i + 1]
         elif (args[i] == "-o" or args[i] == "--output_dir"):
             output_dir = args[i + 1]
-            if (output_dir.endswith("/") == False):
-                output_dir = output_dir + "/"
+            output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-i" or args[i] == "--dictionary_name"):
             dictionary_name = args[i + 1]
         elif (args[i] == "-m" or args[i] == "--model_name"):
@@ -54,13 +56,14 @@ def parseParams(args):
         sys.exit()
 
 
-    return genomes_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name
+    return genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name
 
 
 
 # returns a string of all the options for the script if the script was called with -h or --help
 def helpOption():
     s = "-g --genomes_dir:\tthe directory containing the fasta files to train the model, the KMC executable package, and the kmc.sh script. The default is './'"
+    s+= "\n-k --kmc_out_dir:\tthe directory in which the output files of KMC are stored"
     s+= "\n-s --kmr_size:\tthe size of the k-mer to run KMC with. The default is 10"
     s+= "\n-o --output_dir:\tthe directory where the DataFrame, dictionary, and model are stored. The default is ~/<genomes_dir>/output"
     s+= "\n-m --model_name:\tthe name of the stored Ct value prediction model (in output_dir). The default is 'ct_model.sav'"
@@ -76,7 +79,6 @@ def helpOption():
 #    kmr_size: the size of the k-mers to be used when running KMC (should be the same size as used to create the model)
 def runKMC(genomes_dir, genome_name, kmr_size):
     # run KMC on genome_name
-    # return the name of the output file which is then passed into createRow?
     out_file = genome_name.replace(".fasta", "_kmc")
 
     # running KMC:
@@ -94,17 +96,17 @@ def runKMC(genomes_dir, genome_name, kmr_size):
 
 # creates a 1D numpy array from the k-mer counts of the input genome with the same features as the matrix the model was trained on
 # parameters:
-#    genomes_dir: the directory containing kmr_output_file (the output file of KMC with the list of unique k-mers)
+#    kmc_out_dir: the directory containing kmr_output_file (the output file of KMC with the list of unique k-mers)
 #    kmr_dictionary: the dictionary of k-mer : column number used to construct the matrix the model was trained on
 #    csv_path: the path to the file containing the instruments and MCoV-ids
-def createRow(genomes_dir, kmr_output_file, kmr_dictionary, kmr_size, csv_path):
+def createRow(kmc_out_dir, kmr_output_file, kmr_dictionary, kmr_size, csv_path):
     # initalizing the row to have all 0s:
     row = []
     for i in range(len(kmr_dictionary)):
         row.append(0)
 
     # reads in the output file of kmc one k-mer at a time and updates the corresponding spot in row
-    file = open((genomes_dir + kmr_output_file), "r")
+    file = open((kmc_out_dir + kmr_output_file), "r")
     for aline in file:
         # getting the k-mer and k-mer frequency for every line:
         kmr = aline.split()[0]
@@ -140,8 +142,8 @@ def createRow(genomes_dir, kmr_output_file, kmr_dictionary, kmr_size, csv_path):
 def getInstrument(csv_path, genome_id):
     data_labels = pd.read_csv(csv_path)
     for index, row in data_labels.iterrows():
-        if (row["genome_id"] == genome_id):
-            return row["INSTRUMENT"]
+        if (row["Genome ID"] == genome_id):
+            return row["Instrument"]
 
 
 
@@ -153,7 +155,7 @@ def getInstrument(csv_path, genome_id):
 def main(argv):
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    genomes_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name = parseParams(args)
+    genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name = parseParams(args)
 
     # running KMC on the file containing the genome to predict
     kmc_output_file_name = runKMC(genomes_dir, genome_name, kmr_size)
@@ -162,7 +164,7 @@ def main(argv):
     # opening the dictionary:
     kmr_dictionary = pickle.load(open((output_dir + dictionary_name), "rb"))
     # creating a 1D numoy array with the same features as the matrix the model was trained on:
-    row = createRow(genomes_dir, kmc_output_file_name, kmr_dictionary, kmr_size, csv_path)
+    row = createRow(kmc_out_dir, kmc_output_file_name, kmr_dictionary, kmr_size, csv_path)
     print("--predictCt.py-- created numpy array from k-mer counts")
 
     # opening the model:
@@ -173,9 +175,10 @@ def main(argv):
     print("--predictCt.py-- predicted Ct value of genome")
 
     # printing the Ct value prediction
-    print("\n\nGenome: ", genome_name.strip(".fasta"), "  Ct value prediction:  ",  ct_prediction)
+    print("\n\nGenome: ", genome_name.strip(".fasta"), "  Ct value prediction:  ",  str(ct_prediction[0]))
 
 
 # if this is the script called by python, run main function
 if __name__ == '__main__':
 	main(sys.argv)
+
