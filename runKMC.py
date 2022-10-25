@@ -22,9 +22,11 @@ def parseParams(args):
             genomes_dir = args[i + 1]
             if (genomes_dir.endswith("/") == False):
                 genomes_dir = genomes_dir + "/"
+            genomes_dir = os.path.abspath(genomes_dir) + "/"
             kmc_out_dir = genomes_dir + "kmc_output"
         elif (args[i] == "-k" or args[i] == "--kmc_out_dir"):
             kmc_out_dir = args[i + 1]
+            kmc_out_dir = os.path.abspath(kmc_out_dir) + "/"
         elif (args[i] == "-s" or args[i] == "--kmr_size"):
             kmr_size = args[i + 1]
 
@@ -57,7 +59,7 @@ def runKMC(genomes_dir, kmc_out_dir, kmr_size):
             input_file = mcov + ".fasta"
             out_file = mcov + "_kmc"
 
-            cmd = './kmc.sh' + ' ' + str(kmr_size) + ' ' + input_file + ' ' + out_file + ' ' + kmc_out_dir
+            cmd = 'kmc.sh' + ' ' + str(kmr_size) + ' ' + input_file + ' ' + out_file + ' ' + kmc_out_dir
             os.system(cmd) #runs kmc.sh for the current file
 
 
