@@ -8,7 +8,7 @@ import os
 def parseParams(args):
     # setting default values for parameters:
     genomes_dir = "./" # (-g) the directory with genomes as .fasta files
-    kmc_out_dir = genomes_dir + "kmc_output" # (-k) the directory for storing the output files of KMC with k-mer counts
+    kmc_out_dir = genomes_dir + "kmc_output/" # (-k) the directory for storing the output files of KMC with k-mer counts
     kmr_size = 10 # (-s) the size k-mer to run KMC with
 
     # parsing any parameters passed in through the command line
@@ -20,8 +20,6 @@ def parseParams(args):
             break
         elif (args[i] == "-g" or args[i] == "--genomes_dir"):
             genomes_dir = args[i + 1]
-            if (genomes_dir.endswith("/") == False):
-                genomes_dir = genomes_dir + "/"
             genomes_dir = os.path.abspath(genomes_dir) + "/"
             kmc_out_dir = genomes_dir + "kmc_output"
         elif (args[i] == "-k" or args[i] == "--kmc_out_dir"):
