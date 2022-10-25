@@ -27,7 +27,7 @@ This repo requires the following packages to be installed:
 ### 3. Genome Data Directory
 This repo requires a directory containing genome data files. The name of the directory can be passed into the scripts (option -g). The genome data files should have *.fasta* extension and be named <genome_id>.fasta. 
 
-Two scripts in this repo (*createDataFrame.py* and *predictCt.py*) also require a comma-separated (*.csv*) metadata file with information about each genome. This file should contain at least the genome_id (corresponding to the file names), testing instrument, and Ct value for each genome file. If the file includes additional columns, they will be ignored by the scripts. The path to this file must be passed into the scripts (option -c). 
+Two scripts in this repo (*createDataFrame.py* and *predictCt.py*) also require a comma-separated (*.csv*) metadata file with information about each genome. This file should contain at least the genome_id (corresponding to the file names), testing instrument, and Ct value for each genome file. The column titles in the metadata file should be formatted in the same was as the example metadata file provided in */sample/metadata_file.csv*. If the file includes additional columns, they will be ignored by the scripts. The path to this file must be passed into the scripts (option -c). 
 
 
 
@@ -119,6 +119,7 @@ python3 predictCt.py -g <genome directory> -c ~/<metadata file> -m ct_prediction
 
 The script takes in the following options:
 * -g --genomes_dir: Specify the directory containing the genome data as a *.fasta* file to predict the Ct value. The default is the current directory “./”.
+* -k --kmc_out_dir: Specify the directory to be created by the script for storing the output files produced by KMC containing k-mer frequencies. This should be the same directory used for *runKMC.py*. The default is “~/<genomes_dir>/kmc_output/”.
 * -s --kmr_size: Specify the size of the k-mer with which to run KMC. This must be the same as was used to create the model. The default is 10.
 * -c --csv_path: Specify the path to the *.csv* file containing information about the genome whose Ct value to predict. This file must contain the <genome_id> of the genome (matching the name of the file) and the testing instrument of the genome. There is no default for this option.
 * -o --output_dir: Specify the directory containing the Ct value prediction model and the dictionary {k-mer : column number} created by *trainModel.py* and *createDataFrame.py*. The default is "~/<genomes_dir>/output”.
