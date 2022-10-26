@@ -83,7 +83,7 @@ def runKMC(genomes_dir, genome_name, kmr_size):
 
     # running KMC:
     os.chdir(genomes_dir)
-    cmd = './kmc.sh' + ' ' + str(kmr_size) + ' ' + genome_name + ' ' + out_file + ' ' + genomes_dir
+    cmd = 'kmc.sh' + ' ' + str(kmr_size) + ' ' + genome_name + ' ' + out_file + ' ' + genomes_dir
     os.system(cmd)
 
     # deleting the temprorary files created by kmc:

@@ -78,11 +78,12 @@ def helpOption():
 #    df_dir: the directory in which the DataFrame is stored
 #    df_name: the name that the DataFrame is stored as
 # returns: the DataFrame
-def openDataFrame(df_dir, df_name):
+def openDataFrame(df_dir, df_name, start_dir):
     os.chdir(df_dir)
     df_path = df_dir + df_name
     df = pd.read_csv(df_path)
     df = df.dropna()   #dropping any Nans
+    os.chdir(start_dir)
 
     return df
 
@@ -177,13 +178,16 @@ def getAccuracyWithinIntervals(predictions, true_values, output_file_path):
 # evaluates the model's accuracy (r2 score, RMSE, accuracy within intervals)
 # prints a list of the top features (k-mers) of the model
 def main(argv):
+    # current working directory:
+    start_dir = os.getcwd()
+
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
     output_dir, df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling = parseParams(args)
 
 
     # opening the DataFrame
-    df = openDataFrame(output_dir, df_name)
+    df = openDataFrame(output_dir, df_name, start_dir)
     print("--trainModel.py-- opened DataFrame")
 
     #splitting the DataFrame into a train and test set
@@ -199,6 +203,7 @@ def main(argv):
     # creating the output file:
     os.chdir(output_dir)
     os.system("touch " + output_file_name)
+    os.chdir(start_dir)
 
     # evaluating the model's accuracy and writing the results to a file
     evaluateModel(model, test_set, test_labels, (output_dir + output_file_name))
