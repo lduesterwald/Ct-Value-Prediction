@@ -38,6 +38,7 @@ def parseParams(args):
             kmr_size = args[i + 1]
         elif(args[i] == "-c"or args[i] == "--csv_path"):
             csv_path = args[i + 1]
+            csv_path = os.path.abspath(csv_path)
         elif (args[i] == "-o" or args[i] == "--output_dir"):
             output_dir = args[i + 1]
             output_dir = os.path.abspath(output_dir) + "/"
