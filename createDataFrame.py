@@ -72,7 +72,7 @@ def helpOption():
 # parameters:
 #    dir: the directory in which to concatenate all .fasta all_files
 # returns: 'concat_file', the name of the concattenated file
-def concatFiles(dir):
+def concatFiles(dir, start_dir):
     os.chdir(dir)
     os.system("touch concat_file")
 
@@ -86,7 +86,7 @@ def concatFiles(dir):
             with open ('concat_file', 'a') as f:
                 f.write(file_contents)
             f.close()
-
+    os.chdir(start_dir)
     return 'concat_file'
 
 
@@ -98,7 +98,7 @@ def concatFiles(dir):
 #    genomes_dir: the directory containing concat_file
 #    concat_file_name: the name of the concattenated file with which to run KMC
 # returns: the name of the file outputted by KMC containing all unique k-mers and their frequencies
-def runKMCConcat(kmr_size, genomes_dir, concat_file_name):
+def runKMCConcat(kmr_size, genomes_dir, concat_file_name, start_dir):
     os.chdir(genomes_dir)
     cmd = 'kmc.sh' + ' ' + str(kmr_size) + ' ' +  concat_file_name + ' concat_KMC ' + genomes_dir
     os.system(cmd)
@@ -106,6 +106,7 @@ def runKMCConcat(kmr_size, genomes_dir, concat_file_name):
     # Deleting the extra files produced by KMC
     os.system("rm concat_KMC.kmc_pre")
     os.system("rm concat_KMC.kmc_suf")
+    os.chdir(start_dir)
 
     #returning the name of the file containing all unique k-mers across all genomes in geomes_dir
     return "concat_KMC." + str(kmr_size) + ".kmrs"
@@ -118,7 +119,7 @@ def runKMCConcat(kmr_size, genomes_dir, concat_file_name):
 #    genomes_dir: the directory in which all_kmrs_file is
 #    all_kmrs_file: the output of kmc on the concattenated file, contains all k-mers across all genomes
 # returns: the dictionary of k-mer : column number for all k-mers
-def createDictionary(kmr_size, genomes_dir, all_kmrs_file):
+def createDictionary(kmr_size, genomes_dir, all_kmrs_file, start_dir):
     kmr_dictionary = {}
 
     # iterrates through all lines all_kmrs_file (each line is a unique k-mer) and adds that k-mer to the dictionary
@@ -131,6 +132,7 @@ def createDictionary(kmr_size, genomes_dir, all_kmrs_file):
         kmr_dictionary.update({values[0]: col_num}) #dictionary is k_mer : column number
         col_num+= 1
     file.close()
+    os.chdir(start_dir)
 
     return kmr_dictionary
 
@@ -170,7 +172,7 @@ def initializeDf(genomes_dir, kmr_dictionary):
 #    kmc_out_dir: the directory containing the outputs of KMC (the files with k-mer frequency)
 #    kmr_size: the size of k-mers used
 # returns: the updated DataFrame with k-mer frequencies, instrument, and Ct value filled in
-def fillDf(kmr_df, kmr_dictionary, csv_path, kmc_out_dir, kmr_size):
+def fillDf(kmr_df, kmr_dictionary, csv_path, kmc_out_dir, kmr_size, start_dir):
     num_rows = len(kmr_df.index) # the number of rows (k-mers + instrument, Ct value, and genome_id)
     
     # metadata file:
@@ -224,6 +226,7 @@ def fillDf(kmr_df, kmr_dictionary, csv_path, kmc_out_dir, kmr_size):
 
             kmc_file.close()
             index = index + 1
+    os.chdir(start_dir)
 
     return kmr_df
 
@@ -275,11 +278,12 @@ def transposeDf(df):
 #    df: the DataFrame to be stpred
 #    df_dir: the directory in which to store the DataFrame
 #    df_name: the name to store the DataFrame as
-def storeDataFrame(df, df_dir, df_name):
+def storeDataFrame(df, df_dir, df_name, start_dir):
     if (os.path.isfile(df_dir) == False):
         os.system("mkdir " + df_dir) # creating the output directory if it does not already exist
     os.chdir(df_dir)
     df.to_csv(df_name)
+    os.chdir(start_dir)
 
 
 
@@ -289,20 +293,23 @@ def storeDataFrame(df, df_dir, df_name):
 #  the Ct value (label), and the genome_id
 # every genome is one row in the DataFrame
 def main(argv):
+    # current working directory:
+    start_dir = os.getcwd()
+
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
     genomes_dir, kmc_out_dir, kmr_size, csv_path, output_dir, df_name, dictionary_name = parseParams(args)
 
     # concatenates all genomes in the directory into one file
-    concat_file_name = concatFiles(genomes_dir)
+    concat_file_name = concatFiles(genomes_dir, start_dir)
     print("--createDataFrame.py-- concattenated genome files")
 
     # runs KMC on the concattenated file to generate a list of all k-mers across all genomes
-    all_kmrs_file = runKMCConcat(kmr_size, genomes_dir, concat_file_name)
+    all_kmrs_file = runKMCConcat(kmr_size, genomes_dir, concat_file_name, start_dir)
     print("--createDataFrame.py-- ran KMC on the concattenated file")
 
     # creates a dictionary of k-mer : column number to be used when creating the DataFrame
-    kmr_dict = createDictionary(kmr_size, genomes_dir, all_kmrs_file)
+    kmr_dict = createDictionary(kmr_size, genomes_dir, all_kmrs_file, start_dir)
     print("--createDataFrame.py-- created dictionary of k-mer : column number")
 
     # initializes the columns of the DataFrame to include every k-mer (using kmr_dict)
@@ -310,7 +317,7 @@ def main(argv):
     print("--createDataFrame.py-- initialized DataFrame")
 
     # reads in the output files of KMC and adds a row to the DataFrame for every genome with the frequency of every k-mer (column)
-    kmr_df = fillDf(init_df, kmr_dict, csv_path, kmc_out_dir, kmr_size)
+    kmr_df = fillDf(init_df, kmr_dict, csv_path, kmc_out_dir, kmr_size, start_dir)
     print("--createDataFrame.py-- filled in DataFrame with the frequency of every k-mer and the instrument and Ct value")
 
     # transposes the DataFrame and adds column titles
@@ -318,7 +325,7 @@ def main(argv):
     print("--createDataFrame.py-- transposed the DataFrame and added column titles")
 
     # stores the DataFrame as a .csv file
-    storeDataFrame(kmr_df, output_dir, df_name)
+    storeDataFrame(kmr_df, output_dir, df_name, start_dir)
 
     # stores the dictionary as a .pkl file
     os.chdir(output_dir)
