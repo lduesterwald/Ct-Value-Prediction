@@ -44,8 +44,10 @@ def parseParams(args):
             output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-i" or args[i] == "--dictionary_name"):
             dictionary_name = args[i + 1]
+            dictionary_name = os.path.abspath(dictionary_name)
         elif (args[i] == "-m" or args[i] == "--model_name"):
             model_name = args[i + 1]
+            model_name = os.path.abspath(model_name)
         elif (args[i] == "-n" or args[i] == "--genome_name"):
             genome_name = args[i + 1]
 
@@ -163,13 +165,13 @@ def main(argv):
     print("--predictCt.py-- ran KMC on genome file")
 
     # opening the dictionary:
-    kmr_dictionary = pickle.load(open((output_dir + dictionary_name), "rb"))
+    kmr_dictionary = pickle.load(open(dictionary_name, "rb"))
     # creating a 1D numoy array with the same features as the matrix the model was trained on:
     row = createRow(kmc_out_dir, kmc_output_file_name, kmr_dictionary, kmr_size, csv_path)
     print("--predictCt.py-- created numpy array from k-mer counts")
 
     # opening the model:
-    model = pickle.load(open((output_dir + model_name), 'rb'))
+    model = pickle.load(open(model_name, 'rb'))
 
     # predicting the ct value of the row:
     ct_prediction = model.predict(row)
