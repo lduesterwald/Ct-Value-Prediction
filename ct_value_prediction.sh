@@ -40,11 +40,22 @@ then
 fi
 
 
+# getting the directory where the bash script is located
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # checking all the arguments and creating the commands for each script:
-c1="python3 runKMC.py"
-c2="python3 createDataFrame.py"
-c3="python3 trainModel.py"
-c4="python3 predictCt.py"
+base="python3 "
+base+="$SCRIPT_DIR"
+base+="/"
+c1="$base"
+c1+="runKMC.py"
+c2="$base"
+c2+="createDataFrame.py"
+c3="$base"
+c3+="trainModel.py"
+c4="$base"
+c4+="predictCt.py"
+
 
 if ! [ -z "$genomes_dir" ]; then c1+=" -g $genomes_dir"; c2+=" -g $genomes_dir"; c4+=" -g $genomes_dir"; fi
 if ! [ -z "$kmc_out_dir" ]; then c1+=" -k $kmc_out_dir"; c2+=" -k $kmc_out_dir"; c4+=" -k $kmc_out_dir"]; fi
