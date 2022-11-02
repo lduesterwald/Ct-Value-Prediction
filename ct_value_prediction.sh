@@ -55,7 +55,6 @@ if ! [ -z "$df_name" ]; then c2+=" -d $df_name"; c3+=" -d $df_name"; fi
 if ! [ -z "$dictionary_name" ]; then c2+=" -i $dictionary_name"; c3+=" -i $dictionary_name"; c4+=" -i $dictionary_name"; fi
 if ! [ -z "$model_name" ]; then c3+=" -m $model_name"; c4+=" -m $model_name"; fi
 if ! [ -z "$output_file_name" ]; then c3+=" -f $output_file_name"; fi
-if ! [ -z "$num_features" ]; then c3+=" -t $num_features"; fi
 if ! [ -z "$test_size" ]; then c3+=" -ts $test_size"; fi
 if ! [ -z "$num_trees" ]; then c3+=" -nt $num_trees"; fi
 if ! [ -z "$tree_depth" ]; then c3+=" -td $tree_depth"; fi
