@@ -16,12 +16,11 @@ from sklearn.metrics import mean_squared_error
 # this function parses any parameters passed in through the command line or sets them to a default value
 # parameters:
 #    args: the list of arguments passed in through the command line
-# returns: output_dir, df_name, dictionary_name, model_name, output_file_name, num_features, test_size, nt, td, rs
-def parseParams(args):
+# returns: df_name, dictionary_name, model_name, output_file_name, num_features, test_size, nt, td, rs
+def parseParams(args, start_dir):
     # setting default values for parameters:
-    output_dir = "./output/" # (-o) the directory where dataFrame is stored and where the model will be stored
-    df_name = "kmr_df.csv" # (-d) the name that of the k-mer dataFrame (in output_dir)
-    model_name = "ct_model.sav" # (-m) the name to store the Ct value prediction model as (in output_dir)
+    df_name = "kmr_df.csv" # (-d) the name that of the k-mer dataFrame (in start_dir)
+    model_name = "ct_model.sav" # (-m) the name to store the Ct value prediction model as (in start_dir)
     output_file_name = "output_file_trainModel" # (-f) the name of the file to which to write the results
     test_size = 0.2 # (-ts) the test size for the train test split of the data
     # parameters for the model, default values are the optimal ones found during prameter tuning
@@ -37,9 +36,6 @@ def parseParams(args):
             sys.exit()
         if (i == len(args) - 1):
             break
-        elif (args[i] == "-o" or args[i] == "--output_dir"):
-            output_dir = args[i + 1]
-            output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-d" or args[i] == "--df_name"):
             df_name = args[i + 1]
         elif (args[i] == "-m" or args[i] == "--model_name"):
@@ -55,17 +51,16 @@ def parseParams(args):
         elif( args[i] == "-rs" or args[i] == "--row_subsampling"):
             rs = args[i + 1]
 
-    return output_dir, df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling
+    return df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling
 
 
 
 
 # returns a string of all the options for the script if the script was called with -h or --help
 def helpOption():
-    s = "-o --output_dir:\tthe directory where dataFrame is stored and where the model will be stored. The default is './output/'"
     s+= "\n-d --df_name:\tthe name of the k-mer DataFrame to train the model on (must be a .csv file). The default is 'kmr_df.csv'"
     s+= "\n-m --model_name:\tthe name to store the Ct value prediction model created by the script as (must be a .sav file). The default is 'ct_model.sav'"
-    s+= "\n-f --output_file_name:\tthe name of the output file for this script. This file will be created in the <output_dir> directory. The default is 'output_file_trainModel'"
+    s+= "\n-f --output_file_name:\tthe name of the output file for this script. This file will be created in the directory from which the script is run. The default is 'output_file_trainModel'"
     s+= "\n-ts --test_size:\tthe size of the test set to be used in the train_test_split during model training and evaluation. The default is 0.2"
     s+="\n-nt --num_trees:\tthe 'n_estimators' (number of trees) parameter in the Random Forest regressor. The default is 400"
     s+="\n-td --tree_depth:\tthe 'max_depth' (tree depth) parameter in the Random Forest regressor. The default is None"
@@ -80,7 +75,7 @@ def helpOption():
 # returns: the DataFrame
 def openDataFrame(df_dir, df_name, start_dir):
     os.chdir(df_dir)
-    df_path = df_dir + df_name
+    df_path = df_dir + "/" + df_name
     df = pd.read_csv(df_path)
     df = df.dropna()   #dropping any Nans
     os.chdir(start_dir)
@@ -183,11 +178,11 @@ def main(argv):
 
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    output_dir, df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling = parseParams(args)
+    df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling = parseParams(args, start_dir)
 
 
     # opening the DataFrame
-    df = openDataFrame(output_dir, df_name, start_dir)
+    df = openDataFrame(start_dir, df_name, start_dir)
     print("--trainModel.py-- opened DataFrame")
 
     #splitting the DataFrame into a train and test set
@@ -201,18 +196,17 @@ def main(argv):
     print("--trainModel.py-- trained the model")
 
     # creating the output file:
-    os.chdir(output_dir)
-    os.system("touch " + output_file_name)
     os.chdir(start_dir)
+    os.system("touch " + output_file_name)
 
     # evaluating the model's accuracy and writing the results to a file
-    evaluateModel(model, test_set, test_labels, (output_dir + output_file_name))
+    evaluateModel(model, test_set, test_labels, (start_dir + "/" + output_file_name))
 
 
-    # storing the model to the output_dir
-    os.chdir(output_dir)
+    # storing the model to start_dir
+    os.chdir(start_dir)
     pickle.dump(model, open(model_name, "wb"))
-    print("--trainModel.py-- stored results as '", output_file_name, "' in  '", output_dir, "'")
+    print("--trainModel.py-- stored results as '", output_file_name, "' in  '", start_dir, "'")
 
 
 # if this is the script called by python, run main function

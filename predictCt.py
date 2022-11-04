@@ -7,15 +7,14 @@ import pickle
 # this function parses any parameters passed in through the command line or sets them to a default value
 # parameters:
 #    args: the list of arguments passed in through the command line
-# returns: genomes_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name
-def parseParams(args):
+# returns: genomes_dir, genome_name, kmr_size, csv_path, model_name, dictionary_name
+def parseParams(args, start_dir):
     # setting default values for parameters:
-    genomes_dir = "./" # (-g) the directory containing the genome to predict the Ct value for
+    genomes_dir = start_dir + "/" # (-g) the directory containing the genome to predict the Ct value for
     kmc_out_dir = genomes_dir + "kmc_output/" # (-k) the directory in which the output files of KMC are stored
     kmr_size = 10 # (-s) the size of the k-mer to run KMC with. Must be identical to the size used to construct the model
-    output_dir = genomes_dir = "output" # (-o) the directory where DataFrame, dictionary, and model are stored
-    dictionary_name = "kmr_dictionary.pkl" # (-i) the name of the stored dictionary (k-mer : column number) (in output_dir)
-    model_name = "ct_model.sav" # (-m) the name of the stored Ct value prediction model (in output_dir)
+    dictionary_name = start_dir + "/kmr_dictionary.pkl" # (-i) the name of the stored dictionary (k-mer : column number)
+    model_name = start_dir + "/ct_model.sav" # (-m) the name of the stored Ct value prediction model
 
     # required_parameter:
     genome_name = "" # (-n) required, the name of the file containing the genome (must be in .fasta format)
@@ -39,9 +38,6 @@ def parseParams(args):
         elif(args[i] == "-c"or args[i] == "--csv_path"):
             csv_path = args[i + 1]
             csv_path = os.path.abspath(csv_path)
-        elif (args[i] == "-o" or args[i] == "--output_dir"):
-            output_dir = args[i + 1]
-            output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-i" or args[i] == "--dictionary_name"):
             dictionary_name = args[i + 1]
             dictionary_name = os.path.abspath(dictionary_name)
@@ -59,7 +55,7 @@ def parseParams(args):
         sys.exit()
 
 
-    return genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name
+    return genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, model_name, dictionary_name
 
 
 
@@ -68,8 +64,7 @@ def helpOption():
     s = "-g --genomes_dir:\tthe directory containing the fasta files to train the model, the KMC executable package, and the kmc.sh script. The default is './'"
     s+= "\n-k --kmc_out_dir:\tthe directory in which the output files of KMC are stored"
     s+= "\n-s --kmr_size:\tthe size of the k-mer to run KMC with. The default is 10"
-    s+= "\n-o --output_dir:\tthe directory where the DataFrame, dictionary, and model are stored. The default is ~/<genomes_dir>/output"
-    s+= "\n-m --model_name:\tthe name of the stored Ct value prediction model (in output_dir). The default is 'ct_model.sav'"
+    s+= "\n-m --model_name:\tthe name of the stored Ct value prediction model. The default is 'ct_model.sav'"
     s+= "\n-i --dictionary_name:\tthe name of the dictionary { k-mer : column number } used to create the DataFrame that the model was trained on(must be a .pkl file). The default is 'kmr_dictionary.pkl'"
     s+= "\n-n --genome_name:\tthe genome fasta file to predict the Ct value of (must be named <genome_id>.fasta). There is no default for this option."
     s+= "\n-c --csv_path:\tthe path to the metadata .csv file with the genome_id and testing instrument of the genome There is no default for this option."
@@ -156,9 +151,12 @@ def getInstrument(csv_path, genome_id):
 #  creates a 1D numpy array with the same features as the matrix the model was trained on
 #  predicts the Ct value of the array using the stored model
 def main(argv):
+    # current working directory:
+    start_dir = os.getcwd()
+
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, output_dir, model_name, dictionary_name = parseParams(args)
+    genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, model_name, dictionary_name = parseParams(args, start_dir)
 
     # running KMC on the file containing the genome to predict
     kmc_output_file_name = runKMC(genomes_dir, genome_name, kmr_size)
