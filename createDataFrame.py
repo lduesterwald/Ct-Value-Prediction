@@ -7,13 +7,12 @@ import pickle
 # this function parses any parameters passed in through the command line or sets them to a default value
 # parameters:
 #    args: the list of arguments passed in through the command line
-# returns: genomes_dir, kmc_out_dir, kmr_size, csv_path, output_dir, df_name, dictionary_name
-def parseParams(args):
+# returns: genomes_dir, kmc_out_dir, kmr_size, csv_path, df_name, dictionary_name
+def parseParams(args, start_dir):
     # setting default values for parameters:
-    genomes_dir = "./" # (-g) the directory with genomes as .fasta files and KMC executibles
+    genomes_dir = start_dir + "/" # (-g) the directory with genomes as .fasta files and KMC executibles
     kmc_out_dir = genomes_dir + "kmc_output/" # (-k) the directory to which to store the output files of KMC with k-mer counts
     kmr_size = 10 # (-s) the size k-mer to run KMC with
-    output_dir = genomes_dir + "output/" # (-o) the directory in which to store the final DataFrame and the dictionary used to create the DataFrame
     df_name = "kmr_df.csv" # (-d) the name to store the k-mer DataFrame created by this script as
     dictionary_name = "kmr_dictionary.pkl" # (-i) the name to store the dictionary (k-mer : column number) created by the script as
 
@@ -39,9 +38,6 @@ def parseParams(args):
         elif (args[i] == "-c" or args[i] == "--csv_path"):
             csv_path = args[i + 1]
             csv_path = os.path.abspath(csv_path)
-        elif (args[i] == "-o" or args[i] == "--output_dir"):
-            output_dir = args[i + 1]
-            output_dir = os.path.abspath(output_dir) + "/"
         elif (args[i] == "-d" or args[i] == "--df_name"):
             df_name = args[i + 1]
         elif (args[i] == "-i" or args[i] == "--dictionary_name"):
@@ -53,7 +49,7 @@ def parseParams(args):
         print("Error: csv_path (-c) (required parameter) not entered")
         sys.exit()
 
-    return genomes_dir, kmc_out_dir, kmr_size, csv_path, output_dir, df_name, dictionary_name
+    return genomes_dir, kmc_out_dir, kmr_size, csv_path, df_name, dictionary_name
 
 
 
@@ -63,7 +59,6 @@ def helpOption():
     s+= "\n-k --kmc_out_dir:\tthe directory for storing the output files created by KMC. The default is ~/genomes_dir/kmc_out_dir"
     s+= "\n-s --kmr_size:\tthe size of the k-mer to run KMC with. The default is 10"
     s+= "\n-c --csv_path:\tthe path to the metadata .csv file with the genome_id, testing instrument, and Ct value of all genomes. There is no default for this option."
-    s+= "\n-o --output_dir:\tthe directory for storing the k-mer DataFrame created by the script (will be created if it does not exist). The default is  ~/<genomes_dir>/output/"
     s+= "\n-d --df_name:\tthe name that the k-mer DataFrame created by the script will be stored as (must be a .csv file). The default is  'kmr_df.csv'"
     s+= "\n-i --dictionary_name:\tthe name that the dictionary { k-mer : column number } used to create the DataFrame will be stored as (must be a .pkl file). The default is 'kmr_dictionary.pkl'"
     return s
@@ -184,7 +179,7 @@ def fillDf(kmr_df, kmr_dictionary, csv_path, kmc_out_dir, kmr_size, start_dir):
     # iterates through all files in the kmc_out_dir and reads in the k-mers to the initialized DataFrmae
     os.chdir(kmc_out_dir)
     for filename in os.scandir(kmc_out_dir):
-        if (filename.path.endswith(".kmrs")): # checking if the file is in the correct format
+        if ((filename.path.endswith(".kmrs")) and (str(filename).startswith("<DirEntry 'concat") == False)): # checking if the file is in the correct format
             print("  Processing file:   ", filename, " (", index, ")")
 
             kmc_file = open(filename)
@@ -280,8 +275,6 @@ def transposeDf(df):
 #    df_dir: the directory in which to store the DataFrame
 #    df_name: the name to store the DataFrame as
 def storeDataFrame(df, df_dir, df_name, start_dir):
-    if (os.path.isfile(df_dir) == False):
-        os.system("mkdir " + df_dir) # creating the output directory if it does not already exist
     os.chdir(df_dir)
     df.to_csv(df_name)
     os.chdir(start_dir)
@@ -299,7 +292,7 @@ def main(argv):
 
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    genomes_dir, kmc_out_dir, kmr_size, csv_path, output_dir, df_name, dictionary_name = parseParams(args)
+    genomes_dir, kmc_out_dir, kmr_size, csv_path, df_name, dictionary_name = parseParams(args, start_dir)
 
     # concatenates all genomes in the directory into one file
     concat_file_name = concatFiles(genomes_dir, start_dir)
@@ -326,12 +319,12 @@ def main(argv):
     print("--createDataFrame.py-- transposed the DataFrame and added column titles")
 
     # stores the DataFrame as a .csv file
-    storeDataFrame(kmr_df, output_dir, df_name, start_dir)
+    storeDataFrame(kmr_df, start_dir, df_name, start_dir)
 
     # stores the dictionary as a .pkl file
-    os.chdir(output_dir)
+    os.chdir(start_dir)
     pickle.dump(kmr_dict, open(dictionary_name, "wb"))
-    print("--createDataFrame.py-- stored DataFrame as '", df_name, "' and dictionary as '", dictionary_name, "'  in  ", output_dir)
+    print("--createDataFrame.py-- stored DataFrame as '", df_name, "' and dictionary as '", dictionary_name, "'  in  ", start_dir)
 
 
 

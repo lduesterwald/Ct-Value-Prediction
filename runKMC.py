@@ -5,9 +5,9 @@ import os
 # parameters:
 #    args: the list of arguments passed in through the command line
 # returns: genomes_dir, kmc_out_dir, kmr_size
-def parseParams(args):
+def parseParams(args, start_dir):
     # setting default values for parameters:
-    genomes_dir = "./" # (-g) the directory with genomes as .fasta files
+    genomes_dir = start_dir + "/" # (-g) the directory with genomes as .fasta files
     kmc_out_dir = genomes_dir + "kmc_output/" # (-k) the directory for storing the output files of KMC with k-mer counts
     kmr_size = 10 # (-s) the size k-mer to run KMC with
 
@@ -80,9 +80,13 @@ def cleanDir(genomes_dir, kmc_out_dir):
 # main function
 # generates k-mer lists for every genome in a directory by running KMC
 def main(argv):
+    # current working directory:
+    start_dir = os.getcwd()
+    print(start_dir)
+
     args = sys.argv
     # reads in parameters passed in by user through the command line or setting paramters to default values
-    genomes_dir, kmc_out_dir, kmr_size = parseParams(args)
+    genomes_dir, kmc_out_dir, kmr_size = parseParams(args, start_dir)
 
     #runs kmc.sh (kmc and kmc_dump) for every file in genomes_dir directory
     runKMC(genomes_dir, kmc_out_dir, kmr_size)
@@ -96,3 +100,4 @@ def main(argv):
 # if this is the script called by python, run main function
 if __name__ == '__main__':
 	main(sys.argv)
+
