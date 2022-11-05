@@ -49,13 +49,13 @@ python3 runKMC.py -g <genome directory>
 ~~~
 
 This script takes in the following options:
-* -g  --genomes_dir: Specify the directory containing the *.fasta* files to train the model. The default is the current directory “./”.
+* -g  --genomes_dir: Specify the directory containing the *.fasta* files to train the model. The default is the directory from which the script is run.
 * -k --kmc_out_dir: Specify the directory to be created by the script for storing the output files produced by KMC containing k-mer frequencies. The default is “~/<genomes_dir>/kmc_output/”.
 * -s --kmr_size: Specify the size of the k-mer with which to run KMC. The default is 10.
 
 
 ### *createDataFrame.py*
-The *createDataFrame.py* script is used to create and store the k-mer matrix used to train the model as a Pandas DataFrame. The DataFrame represents the features consisting of the frequencies of every unique k-mer across all genomes and the testing instrument of the genome one-hot encoded. The DataFrame also contains the Ct values as labels. 
+The *createDataFrame.py* script is used to create and store the k-mer matrix used to train the model as a Pandas DataFrame. The DataFrame represents the features consisting of the frequencies of every unique k-mer across all genomes and the testing instrument of the genome one-hot encoded. The DataFrame also contains the Ct values as labels. The DataFrame wille be stored in the directory from which the script is run. 
 
 An example run would be:
 ~~~
@@ -63,11 +63,10 @@ python3 createDataFrame.py -g <genome directory>  -c ~/<metadata file>
 ~~~
 
 The script takes in the following options:
-* -g --genomes_dir: Specify the directory containing the *.fasta* files to train the model. This should be the same directory used for *runKMC.py*. The default is the current directory “./”.
+* -g --genomes_dir: Specify the directory containing the *.fasta* files to train the model. This should be the same directory used for *runKMC.py*. The default is the directory from which the script is run.
 * -k --kmc_out_dir:  Specify the directory to be created by the script for storing the output files produced by KMC containing k-mer frequencies. This should be the same directory used for *runKMC.py*. The default is “~/<genomes_dir>/kmc_output/”.
 * -s --kmr_size: Specify the size of the k-mer with which to run KMC. This should be the same as used in *runKMC.py*. The default is 10.
 * -c --csv_path: Specify the path to the comma-separated (*.csv*) metadata file containing the genome_id, testing instrument, and Ct value of each genome in the genome directory. There is no default for this option.
-* -o --output_dir: Specify the directory for storing the k-mer DataFrame created by the script. If the output directory does not exist, it will be created by the script. The default is “~/<genomes_dir>/output/”. 
 * -d --df_name: Specify the name that the k-mer DataFrame created by the script will be stored as. This must be a *.csv* file. The default is "kmr_df.csv".
 * -i --dictionary_name: Specify the name that the dictionary of { k-mer : column number } used to create the DataFrame will be stored as. This must be a *.pkl* file. The default is "kmr_dictionary.pkl". 
 An example dictionary used in the createDataFrame.py script is included in the sample folder.
@@ -79,14 +78,13 @@ An example model trained by this script is included in the sample folder.
 
 An example run would be:
 ~~~
-python3 trainModel.py -o ~/<genome_directory>/output -m ct_prediction_model.sav
+python3 trainModel.py -g <genome directory>  -m ct_prediction_model.sav
 ~~~
 
 The script takes in the following options:
-* -o --output_dir: Specify the directory containing the k-mer DataFrame that will be used for storing the model trained in this script. This must be the same as in *createDataFrame.py*. The default is “./output”.
 * -d --df_name: Specify the name that the DataFrame created by *createDataFrame.py* was stored as. Must be a *.csv* file. The default is "kmr_df.csv".
 * -m --model_name: Specify the name that the Ct value prediction model will be stored as. This must be a .sav file. The default is "ct_model.sav".
-* -f --output_file_name: Specify the name of the output file for this script. This file will be created in the <output_dir> directory. The default is "output_file_trainModel".
+* -f --output_file_name: Specify the name of the output file for this script. This file will be created in the directory from which the script is run. The default is "output_file_trainModel".
 * -ts --test_size: Specify the size of the test set to be used in the train_test_split during model training and evaluation. The default is 0.2.
 * -nt --num_trees: Specify the ‘n_estimators’ (number of trees) parameter in the Random Forest regression model. The default was established through hyperparameter tuning and is 400.
 * -td --tree_depth: Specify the ‘max_depth’ (tree depth) parameter in the Random Forest regression model. The default was established through hyperparameter tuning and is None.
@@ -118,11 +116,10 @@ python3 predictCt.py -g <genome directory> -c ~/<metadata file> -m ct_prediction
 ~~~
 
 The script takes in the following options:
-* -g --genomes_dir: Specify the directory containing the genome data as a *.fasta* file to predict the Ct value. The default is the current directory “./”.
+* -g --genomes_dir: Specify the directory containing the genome data as a *.fasta* file to predict the Ct value. The default is the directory from which the script is run.
 * -k --kmc_out_dir: Specify the directory to be created by the script for storing the output files produced by KMC containing k-mer frequencies. This should be the same directory used for *runKMC.py*. The default is “~/<genomes_dir>/kmc_output/”.
 * -s --kmr_size: Specify the size of the k-mer with which to run KMC. This must be the same as was used to create the model. The default is 10.
 * -c --csv_path: Specify the path to the *.csv* file containing information about the genome whose Ct value to predict. This file must contain the <genome_id> of the genome (matching the name of the file) and the testing instrument of the genome. There is no default for this option.
-* -o --output_dir: Specify the directory containing the Ct value prediction model and the dictionary {k-mer : column number} created by *trainModel.py* and *createDataFrame.py*. The default is "~/<genomes_dir>/output”.
 * -i --dictionary_name: Specify the name of the dictionary {k-mer : column number} used to create the DataFrame in *createDataFrame.py*. Must be a .pkl file. The default is “kmr_dictionary.pkl".
 * -m --model_name: Specify the name of the Ct value prediction model created by the *trainModel.py* script. This should be a .sav file. The default is "ct_model.sav".
 * -n --genome_name: Specify the genome *.fasta* file name for which to predict the Ct value. Must be in <genomes_dir>. This file should be named <genome_id>.fasta. There is no default for this option.
