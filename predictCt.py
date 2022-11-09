@@ -30,6 +30,7 @@ def parseParams(args, start_dir):
         elif (args[i] == "-g" or args[i] == "--genomes_dir"):
             genomes_dir = args[i + 1]
             genomes_dir = os.path.abspath(genomes_dir) + "/"
+            kmc_out_dir = genomes_dir + "kmc_output/"
         elif (args[i] == "-k" or args[i] == "--kmc_out_dir"):
             kmc_out_dir = args[i + 1]
             kmc_out_dir = os.path.abspath(kmc_out_dir) + "/"
