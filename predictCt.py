@@ -75,13 +75,13 @@ def helpOption():
 # parameters:
 #    genomes_dir: the directory containing genome_name (the name of the genome file in .fasta format)
 #    kmr_size: the size of the k-mers to be used when running KMC (should be the same size as used to create the model)
-def runKMC(genomes_dir, genome_name, kmr_size):
+def runKMC(genomes_dir, genome_name, kmr_size, kmc_out_dir):
     # run KMC on genome_name
     out_file = genome_name.replace(".fasta", "_kmc")
 
     # running KMC:
     os.chdir(genomes_dir)
-    cmd = 'kmc.sh' + ' ' + str(kmr_size) + ' ' + genome_name + ' ' + out_file + ' ' + genomes_dir
+    cmd = 'kmc.sh' + ' ' + str(kmr_size) + ' ' + genome_name + ' ' + out_file + ' ' + kmc_out_dir
     os.system(cmd)
 
     # deleting the temprorary files created by kmc:
@@ -159,7 +159,7 @@ def main(argv):
     genomes_dir, kmc_out_dir, genome_name, kmr_size, csv_path, model_name, dictionary_name = parseParams(args, start_dir)
 
     # running KMC on the file containing the genome to predict
-    kmc_output_file_name = runKMC(genomes_dir, genome_name, kmr_size)
+    kmc_output_file_name = runKMC(genomes_dir, genome_name, kmr_size, kmc_out_dir)
     print("--predictCt.py-- ran KMC on genome file")
 
     # opening the dictionary:
