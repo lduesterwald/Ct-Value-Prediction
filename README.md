@@ -7,6 +7,8 @@ This repository contains scripts to train and score a Random Forest regression m
 
 This repo also includes the *sample* directory containing the data and model files for testing and running the scripts including instructions on how to download relevant data.
 
+More details can be found in this preprint: [Using Genome Sequence Data to Predict SARS-CoV-2 Detection Cycle Threshold Values](https://doi.org/10.1101/2022.11.14.22282297).
+
 
 ## Requirements
 In order to run the scripts:
