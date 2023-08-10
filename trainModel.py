@@ -47,9 +47,9 @@ def parseParams(args, start_dir):
         elif( args[i] == "-nt" or args[i] == "--num_trees"):
             num_trees = args[i + 1]
         elif( args[i] == "-td" or args[i] == "--tree_depth"):
-            td = args[i + 1]
+            tree_depth = args[i + 1]
         elif( args[i] == "-rs" or args[i] == "--row_subsampling"):
-            rs = args[i + 1]
+            row_subsampling = args[i + 1]
 
     return df_name, model_name, output_file_name, test_size, num_trees, tree_depth, row_subsampling
 
